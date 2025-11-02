@@ -1,0 +1,5 @@
+# 生成迁移（名称可自定义，如 InitialCreate）
+Add-Migration InitialCreate
+
+# 应用迁移，创建表
+Update-Database
