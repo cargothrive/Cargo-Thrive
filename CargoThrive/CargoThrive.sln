@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35327.3
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CargoThrive.API", "CargoThrive.API.csproj", "{ACA44A48-E577-4E38-8BD4-C2007652B982}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CargoThrive.Core", "..\CargoThrive.Core\CargoThrive.Core.csproj", "{1A899656-48CB-4CB5-AA68-4E83842F5F4F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CargoThrive.Tests", "..\CargoThrive.Tests\CargoThrive.Tests.csproj", "{8B02AF1C-281A-4681-AA2B-E9B4098544FC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CargoThrive.Infrastructure", "..\CargoThrive.Infrastructure\CargoThrive.Infrastructure.csproj", "{A789343D-C450-460E-A101-36D608A9FE5D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{ACA44A48-E577-4E38-8BD4-C2007652B982}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ACA44A48-E577-4E38-8BD4-C2007652B982}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ACA44A48-E577-4E38-8BD4-C2007652B982}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ACA44A48-E577-4E38-8BD4-C2007652B982}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A899656-48CB-4CB5-AA68-4E83842F5F4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A899656-48CB-4CB5-AA68-4E83842F5F4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A899656-48CB-4CB5-AA68-4E83842F5F4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A899656-48CB-4CB5-AA68-4E83842F5F4F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B02AF1C-281A-4681-AA2B-E9B4098544FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B02AF1C-281A-4681-AA2B-E9B4098544FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B02AF1C-281A-4681-AA2B-E9B4098544FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B02AF1C-281A-4681-AA2B-E9B4098544FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A789343D-C450-460E-A101-36D608A9FE5D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A789343D-C450-460E-A101-36D608A9FE5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A789343D-C450-460E-A101-36D608A9FE5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A789343D-C450-460E-A101-36D608A9FE5D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {ADE490FC-66E0-4B69-847A-FEF2EB84F01D}
+	EndGlobalSection
+EndGlobal
