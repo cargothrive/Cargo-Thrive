@@ -1,0 +1,17 @@
+# 解决方案文件相关
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# 工作区缓存
+.vs/
+.vscode/
+
+# 编译输出
+bin/
+obj/
+
+# 调试相关
+*.pdb
+*.log
