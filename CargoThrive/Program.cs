@@ -7,21 +7,35 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
-// Program.cs 中添加认证服务
+
+
+// 1. 读取 JWT 配置
+var jwtConfig = builder.Configuration.GetSection("Jwt");
+var secretKey = jwtConfig["Key"];
+var issuer = jwtConfig["Issuer"];
+var audience = jwtConfig["Audience"];
+
+// 2. 添加 JWT 认证服务
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"], // 从配置文件读取
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
-        };
-    });
+  .AddJwtBearer(options =>
+  {
+      options.TokenValidationParameters = new TokenValidationParameters
+      {
+          // 必须验证的参数
+          ValidateIssuer = true,         // 验证签发者
+          ValidateAudience = true,       // 验证受众
+          ValidateLifetime = true,       // 验证过期时间
+          ValidateIssuerSigningKey = true, // 验证签名密钥
+
+          // 对应配置的值
+          ValidIssuer = issuer,
+          ValidAudience = audience,
+          IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
+
+          // 可选：允许的时钟偏差（避免服务器时间差异导致令牌提前失效）
+          ClockSkew = TimeSpan.FromMinutes(5)
+      };
+  });
 
 // 添加授权服务
 builder.Services.AddAuthorization();
