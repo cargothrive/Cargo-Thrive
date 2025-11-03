@@ -2,6 +2,9 @@ namespace CargoThrive
 {
     public class WeatherForecast
     {
+        /// <summary>
+        /// ÎŞÄÚÈİ
+        /// </summary>
         public DateOnly Date { get; set; }
 
         public int TemperatureC { get; set; }
