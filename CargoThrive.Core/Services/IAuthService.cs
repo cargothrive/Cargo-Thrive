@@ -10,8 +10,9 @@ namespace CargoThrive.Core.Services
     public interface IAuthService
     {
         string GetTestMessage();
-        Task<LoginResponse> LoginAsync(LoginRequest request);
-        Task LogoutAsync(long userId);
+        Task<LoginResponse> LoginAsync(LoginRequest request); 
+        Task<LoginResponse> SwitchRolesAsync(long userId, long roleId);  // 角色切换方法
+        Task LogoutAsync(string token);
         Task<bool> ValidateTokenAsync(string token);
     }
 

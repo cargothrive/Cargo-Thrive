@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace CargoThrive.Core.Models
 {
     // 用户登录请求DTO
-    public class LoginRequest
+    public class LoginRequest: DefaultRequest
     {
         [Required]
         public string Account { get; set; }

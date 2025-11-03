@@ -1,8 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -31,6 +32,12 @@ namespace CargoThrive.Core.Models
         /// </summary>
         [DisplayName("用户姓名")]
         public string Username { get; set; }
+
+        /// <summary>
+        /// 角色ID（外键）
+        /// </summary>
+        [DisplayName("角色ID")]
+        public long RoleId { get; set; }
 
         /// <summary>
         /// 密码有效期

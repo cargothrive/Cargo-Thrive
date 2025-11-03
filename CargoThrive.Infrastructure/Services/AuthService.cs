@@ -1,43 +1,48 @@
-﻿using System;
+﻿using CargoThrive.Core.Models;
+using CargoThrive.Core.Services;
+using CargoThrive.Infrastructure.Data;
+using CargoThrive.Infrastructure.Helpers;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using StackExchange.Redis;
+using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using CargoThrive.Core.Models;
-using CargoThrive.Core.Services;
-using Microsoft.EntityFrameworkCore;  // 引入 EF Core 的命名空间
-using CargoThrive.Infrastructure.Data;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using Microsoft.EntityFrameworkCore.Internal;
-using System.IdentityModel.Tokens.Jwt;
-using Microsoft.IdentityModel.Tokens;
-
 
 namespace CargoThrive.Infrastructure.Services
 {
-
     public class AuthService : IAuthService
     {
         private readonly ApplicationDbContext _dbContext;
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        // 从配置文件获取最大错误次数（默认5次）
+        private readonly IDistributedCache _cache;  // Redis 缓存，用于 Token 黑名单
         private readonly int _maxPasswordErrorCount;
+        private readonly RedisHelper _redisHelper;
 
-        public AuthService(ApplicationDbContext dbContext,IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
+        public AuthService(ApplicationDbContext dbContext, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, IDistributedCache cache,
+    RedisHelper redisHelper)
         {
             _dbContext = dbContext;
             _configuration = configuration;
             _httpContextAccessor = httpContextAccessor;
+            _cache = cache;
             _maxPasswordErrorCount = int.Parse(_configuration["Jwt:MaxPasswordErrorCount"] ?? "5");
+            _redisHelper = redisHelper;
         }
+
         public string GetTestMessage()
         {
             return "Hello from TestService!";
         }
+
         /// <summary>
         /// 用户登录并生成Token
         /// </summary>
@@ -46,8 +51,8 @@ namespace CargoThrive.Infrastructure.Services
             // 1. 查询用户（包含角色信息）
             var user = await _dbContext.UserManagements
                 .FirstOrDefaultAsync(u =>
-                    u.Account == request.Account &&
-                    u.Status);
+                    u.Account == request.Account);  // 用户存在且账户有效
+
             // 2. 验证用户是否存在
             if (user == null)
                 throw new Exception("用户名或密码错误");
@@ -68,7 +73,7 @@ namespace CargoThrive.Infrastructure.Services
                 throw new Exception("密码已过期，请修改密码后重新登录");
 
             // 6. 验证密码
-            var passwordValid = VerifyPasswordHash(request.Password, user.PasswordHash, user.PasswordSalt);
+            var passwordValid = PasswordHasher.VerifyPassword(request.Password, user.PasswordHash, user.PasswordSalt);
 
             if (!passwordValid)
             {
@@ -80,39 +85,51 @@ namespace CargoThrive.Infrastructure.Services
             // 7. 登录成功 - 重置所有错误信息（含冷却期）
             await ResetPasswordErrorInfoAsync(user);
 
-            // 7. 获取用户角色
-            var roles = await _dbContext.Roles
-                .Where(ur => ur.Status)
+            // 8. 获取用户角色信息
+            var validRoles = _dbContext.Roles.Where(r => r.Status);  // 提前过滤右表
+            var roles = await _dbContext.UserRoles
+                .Where(ur => ur.UserManagementId == user.Id && ur.Status)
+                .Join(
+                    validRoles,  // 使用已过滤的右表
+                    ur => ur.RoleId,
+                    role => role.Id,
+                    (ur, role) => role
+                )
+                .Distinct()
                 .ToListAsync();
+
             if (!roles.Any())
             {
                 await RecordLoginLog(user.Id, "Failed", "用户未赋予角色");
                 throw new Exception("用户未赋予角色");
             }
 
-            // 8. 生成JWT Token
-            var token = GenerateJwtToken(user, roles);
+            // 9. 生成JWT Token
+            var token = GenerateJwtToken(user, roles.Count() > 0 ? roles[0].Id.ToString() : "0", roles);
+
             var expiresInMinutes = int.Parse(_configuration["Jwt:ExpiresInMinutes"]);
-            // 6. 记录登录日志（可选）
-            await RecordLoginLog(user.Id, "Success", null);
+            await RecordLoginLog(user.Id, "Success", null);  // 登录日志记录
 
             return new LoginResponse
             {
                 Token = token,
-                ExpiresIn = expiresInMinutes * 60,
+                ExpiresIn = expiresInMinutes * 60,  // 转换为秒
                 User = new UserInfo
                 {
                     Id = user.Id,
                     Username = user.UserName,
+                    RoleId = roles.Count() > 0 ? roles[0].Id : 0,
                     Roles = roles,
-                    PasswordExpireTime=user.PasswordExpireTime
+                    PasswordExpireTime = user.PasswordExpireTime
                 }
             };
         }
+
+
         private async Task HandlePasswordErrorAsync(UserManagement user)
         {
             var now = DateTime.Now;
-            const int coolDownMinutes = 5; // 3-5次错误时的冷却时间（5分钟）
+            const int coolDownMinutes = 5;  // 错误次数达到3-5次后冷却时间（5分钟）
 
             // 累计错误次数（基于时间窗口逻辑不变）
             if (user.LoginCountTimeLimit.HasValue)
@@ -120,35 +137,35 @@ namespace CargoThrive.Infrastructure.Services
                 var timeWindow = TimeSpan.FromMinutes(user.LoginCountTimeLimit.Value);
                 if (user.LastPasswordErrorTime.HasValue && now - user.LastPasswordErrorTime.Value <= timeWindow)
                 {
-                    user.PasswordErrorCount++; // 时间窗口内累计
+                    user.PasswordErrorCount++;  // 时间窗口内累计
                 }
                 else
                 {
-                    user.PasswordErrorCount = 1; // 超出窗口重置为1
+                    user.PasswordErrorCount = 1;  // 超出窗口重置为1
                 }
             }
             else
             {
-                user.PasswordErrorCount++; // 无时间限制时直接累计
+                user.PasswordErrorCount++;  // 无时间限制时直接累计
             }
 
-            // 关键：3-5次错误时，设置5分钟冷却期
+            // 设置冷却期（3-5次错误时，设置冷却期为5分钟）
             if (user.PasswordErrorCount >= 3 && user.PasswordErrorCount <= 5)
             {
-                user.PasswordErrorLockEndTime = now.AddMinutes(coolDownMinutes); // 冷却结束时间 = 现在+5分钟
+                user.PasswordErrorLockEndTime = now.AddMinutes(coolDownMinutes);  // 设置冷却期结束时间
             }
-            // 可选：超过5次错误时，直接锁定账户（终极限制）
+            // 超过5次错误时锁定账户
             else if (user.PasswordErrorCount > 5)
             {
-                user.Status = false; // 账户锁定
-                user.PasswordErrorLockEndTime = null; // 无需冷却，直接锁定
+                user.Status = false;  // 账户锁定
+                user.PasswordErrorLockEndTime = null;  // 锁定账户，无需冷却
             }
             else
             {
-                user.PasswordErrorLockEndTime = null; // 不足3次错误，无冷却
+                user.PasswordErrorLockEndTime = null;  // 错误次数不足3次时，无冷却
             }
 
-            // 更新上次错误时间
+            // 更新错误时间
             user.LastPasswordErrorTime = now;
 
             // 保存更新
@@ -160,22 +177,11 @@ namespace CargoThrive.Infrastructure.Services
         {
             user.PasswordErrorCount = 0;
             user.LastPasswordErrorTime = null;
-            user.PasswordErrorLockEndTime = null; // 清除冷却期
+            user.PasswordErrorLockEndTime = null;  // 清除冷却期
             _dbContext.UserManagements.Update(user);
             await _dbContext.SaveChangesAsync();
         }
 
-
-        /// <summary>
-        /// 退出登录（实际项目可能需要黑名单处理）
-        /// </summary>
-        public async Task LogoutAsync(long userId)
-        {
-            // 记录退出日志
-            //await RecordLogoutLog(userId);
-
-            // 如果需要立即失效Token，可以将Token加入黑名单（需配合缓存实现）
-        }
 
         /// <summary>
         /// 验证Token有效性
@@ -208,25 +214,102 @@ namespace CargoThrive.Infrastructure.Services
         }
 
         /// <summary>
+        /// 切换角色
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="roleId"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public async Task<LoginResponse> SwitchRolesAsync(long userId, long roleId)
+        {
+
+            // 1. 查询用户（包含角色信息）
+            var user = await _dbContext.UserManagements
+                .FirstOrDefaultAsync(u =>
+                    u.Id == userId &&
+                    u.Status);  // 用户存在且账户有效
+
+            // 2. 验证用户是否存在
+            if (user == null)
+                throw new Exception("用户不存在");
+
+
+
+
+            // 3. 获取用户角色信息
+            var validRoles = _dbContext.Roles.Where(r => r.Status);  // 提前过滤右表
+            var roles = await _dbContext.UserRoles
+                .Where(ur => ur.UserManagementId == user.Id && ur.Status)
+                .Join(
+                    validRoles,  // 使用已过滤的右表
+                    ur => ur.RoleId,
+                    role => role.Id,
+                    (ur, role) => role
+                )
+                .Distinct()
+                .ToListAsync();
+
+            if (!roles.Any())
+            {
+                await RecordLoginLog(user.Id, "Failed", "用户未赋予角色");
+                throw new Exception("用户未赋予角色");
+            }
+            if (roles.Count(r => r.Id == roleId) == 0)
+            {
+
+                throw new Exception("未找到指定角色");
+            }
+            // 9. 生成JWT Token
+            var token = GenerateJwtToken(user, roleId.ToString(), roles);
+
+            var expiresInMinutes = int.Parse(_configuration["Jwt:ExpiresInMinutes"]);
+
+            return new LoginResponse
+            {
+                Token = token,
+                ExpiresIn = expiresInMinutes * 60,  // 转换为秒
+                User = new UserInfo
+                {
+                    Id = user.Id,
+                    Username = user.UserName,
+                    RoleId = roles.Count() > 0 ? roles[0].Id : 0,
+                    Roles = roles,
+                    PasswordExpireTime = user.PasswordExpireTime
+                }
+            };
+
+        }
+
+        /// <summary>
+        /// 退出登录时，将 JWT 令牌加入黑名单
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public async Task LogoutAsync(string token)
+        {
+            var tokenKey = $"blacklist:{token}";
+            await _redisHelper.SetStringAsync(tokenKey, "invalid", TimeSpan.FromMinutes(60));  // 设置过期时间
+        }
+
+        /// <summary>
         /// 生成JWT Token
         /// </summary>
-        private string GenerateJwtToken(UserManagement user, List<Role> roles)
+        private string GenerateJwtToken(UserManagement user, string roleId, List<Core.Models.Role> roles)
         {
             var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),//用户Id
-            new Claim(ClaimTypes.Name, user.UserName),//用户姓名
-            new Claim("Account", user.Account),//登录账号
-            new Claim("TenantId", user.TenantId.ToString()),//对应租户Id
-            new Claim("RoleId", roles.Count()>0?roles[0].Id.ToString():"0")//当前角色Id
-        };
-            List<long> roleIds=roles.Select(x => x.Id).ToList();
-            // 添加角色声明
-            claims.AddRange(roleIds.Select(role => new Claim(ClaimTypes.Role, role.ToString())));
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()), // 用户Id
+                new Claim(JwtRegisteredClaimNames.Name, user.UserName), // 用户名
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), // 唯一标识
+                new Claim("Account", user.Account), // 登录账号
+                new Claim("TenantId", user.TenantId.ToString()), // 租户Id
+                new Claim("RoleId", roleId), // 当前角色Id
+                new Claim(ClaimTypes.Role, string.Join(",", roles.Select(r => r.Id))) // 角色Id
+            };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expires = DateTime.Now.AddMinutes(int.Parse(_configuration["Jwt:ExpiresInMinutes"]));
+            var expires = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["Jwt:ExpiresInMinutes"]));
 
             var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],
@@ -239,54 +322,11 @@ namespace CargoThrive.Infrastructure.Services
         }
 
         /// <summary>
-        /// 验证密码（接收string类型的哈希和盐值，内部转换为byte[]）
-        /// </summary>
-        private bool VerifyPasswordHash(string password, string storedHash, string storedSalt)
-        {
-            // 将存储的盐值（Base64字符串）转换为byte[]
-            byte[] storedSaltBytes = Convert.FromBase64String(storedSalt);
-            // 将存储的哈希值（Base64字符串）转换为byte[]
-            byte[] storedHashBytes = Convert.FromBase64String(storedHash);
-
-            using (var hmac = new HMACSHA512(storedSaltBytes))
-            {
-                // 计算输入密码的哈希
-                byte[] computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
-
-                // 对比计算出的哈希与存储的哈希
-                for (int i = 0; i < computedHash.Length; i++)
-                {
-                    if (computedHash[i] != storedHashBytes[i])
-                        return false;
-                }
-                return true;
-            }
-        }
-
-        /// <summary>
-        /// 生成密码哈希和盐值（返回Base64字符串，适合存储到数据库）
-        /// </summary>
-        private void CreatePasswordHash(string password, out string passwordHash, out string passwordSalt)
-        {
-            using (var hmac = new HMACSHA512())
-            {
-                // 生成随机盐值（HMACSHA512自带随机密钥作为盐值）
-                passwordSalt = Convert.ToBase64String(hmac.Key); // 转换为Base64字符串
-
-                // 计算密码哈希并转换为Base64字符串
-                byte[] hashBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
-                passwordHash = Convert.ToBase64String(hashBytes);
-            }
-        }
-
-        /// <summary>
         /// 记录登录日志（可选）
         /// </summary>
-        private async Task RecordLoginLog(long userId,string loginStatus,string failReason)
+        private async Task RecordLoginLog(long userId, string loginStatus, string failReason)
         {
-            // 获取IP地址（示例代码，根据实际情况调整）
             var ipAddress = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? string.Empty;
-            // 获取用户代理（使用上面的正确写法）
             var userAgent = _httpContextAccessor.HttpContext?.Request.Headers["User-Agent"].ToString() ?? string.Empty;
 
             _dbContext.LoginLogs.Add(new LoginLog
@@ -301,7 +341,5 @@ namespace CargoThrive.Infrastructure.Services
 
             await _dbContext.SaveChangesAsync();
         }
-
-      
     }
 }

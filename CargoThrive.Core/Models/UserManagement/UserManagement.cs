@@ -29,7 +29,7 @@ namespace CargoThrive.Core.Models
         [Comment("用户登录标识，支持手机号/邮箱格式")]
         [StringLength(50, ErrorMessage = "登录帐号长度不超过50字符")]
         [RegularExpression(@"^[a-zA-Z0-9_@.]+$", ErrorMessage = "登录帐号仅支持字母、数字及@._符号")]
-        public string Account { get; set; }
+        public required string Account { get; set; }
 
         /// <summary>
         /// 密码哈希值（存储HMACSHA512加密后的结果）
@@ -40,7 +40,7 @@ namespace CargoThrive.Core.Models
         [Description("密码哈希值（HMACSHA512加密存储）")]
         [Comment("密码哈希值，禁止明文存储")]
         [MaxLength(200, ErrorMessage = "密码哈希值为200字符")] // 加密后固定长度
-        public string PasswordHash { get; set; }
+        public required string PasswordHash { get; set; }
 
         /// <summary>
         /// 密码盐值（随机生成，用于增强哈希安全性）
@@ -50,8 +50,8 @@ namespace CargoThrive.Core.Models
         [Display(Name = "密码盐值")]
         [Description("密码盐值")]
         [Comment("密码盐值")]
-        [MaxLength(100, ErrorMessage = "密码盐值为200字符")] // 加密后固定长度
-        public string PasswordSalt { get; set; } // 新增该字段，解决CS1061错误
+        [MaxLength(100, ErrorMessage = "密码盐值为100字符")] // 加密后固定长度
+        public required string PasswordSalt { get; set; } // 新增该字段，解决CS1061错误
 
         /// <summary>
         /// 用户姓名
@@ -62,7 +62,7 @@ namespace CargoThrive.Core.Models
         [Description("用户真实姓名")]
         [Comment("用户在系统中显示的真实姓名")]
         [StringLength(20, ErrorMessage = "用户姓名不超过20字符")]
-        public string UserName { get; set; }
+        public required string UserName { get; set; }
 
         /// <summary>
         /// 上班时间
@@ -162,7 +162,31 @@ namespace CargoThrive.Core.Models
         public Tenant? Tenant { get; set; }
         #endregion
 
+        #region 构造函数
+        /// <summary>
+        /// EF Core 映射所需的无参构造函数（保护访问，避免外部随意创建）
+        /// </summary>
+        protected UserManagement() { }
 
+        /// <summary>
+        /// 创建用户的核心构造函数（必填字段）
+        /// </summary>
+        /// <param name="account">登录账号</param>
+        /// <param name="passwordHash">密码哈希</param>
+        /// <param name="passwordSalt">密码盐值</param>
+        /// <param name="userName">用户姓名</param>
+        /// <param name="tenantId">租户ID（0=总管理员）</param>
+        public UserManagement(string account, string passwordHash, string passwordSalt, string userName, long tenantId)
+        {
+            Account = account;
+            PasswordHash = passwordHash;
+            PasswordSalt = passwordSalt;
+            UserName = userName;
+            TenantId = tenantId;
+            Status = true; // 默认启用
+            PasswordErrorCount = 0; // 默认错误次数为0
+        }
+        #endregion
 
 
 

@@ -25,7 +25,7 @@ namespace CargoThrive.Core.Models
         [Description("管理员电子签名或标识签名")]
         [Comment("管理员签名（用于身份标识或文件签署）")]
         [StringLength(400, ErrorMessage = "签名长度不超过400字符")] // 签名可能含特殊符号/短字符串，限制长度
-        public string Sign { get; set; }
+        public required string Sign { get; set; }
 
         /// <summary>
         /// 国家/地区（管理员所属国家）
@@ -46,7 +46,7 @@ namespace CargoThrive.Core.Models
         [Description("管理员对外显示的签名别名")]
         [Comment("管理员签名的显示名称")]
         [StringLength(50, ErrorMessage = "签名名称不超过50字符")] // 显示名称需简洁，限制长度
-        public string ShowNickName { get; set; }
+        public required string ShowNickName { get; set; }
 
         /// <summary>
         /// 用户（外键）
@@ -56,7 +56,31 @@ namespace CargoThrive.Core.Models
         public long UserManagementId { get; set; }  // 用户ID（外键）
 
         #region 导航属性
-        public UserManagement UserManagement { get; set; }
+        public required UserManagement UserManagement { get; set; }
+        #endregion
+
+        #region 构造函数
+        /// <summary>
+        /// EF Core 映射所需的无参构造函数（保护访问，避免外部随意创建）
+        /// </summary>
+        protected UserManagementSign() { }
+
+        /// <summary>
+        /// 创建用户签名的核心构造函数（必填字段）
+        /// </summary>
+        /// <param name="userManagementId">关联用户ID</param>
+        /// <param name="sign">签名内容（Base64或文本）</param>
+        /// <param name="showNickName">签名显示名称</param>
+        /// <param name="signType">签名类型</param>
+        public UserManagementSign(long userManagementId, string sign, string showNickName)
+        {
+            UserManagementId = userManagementId;
+            Sign = sign;
+            ShowNickName = showNickName;
+            // 默认值字段无需传入，自动赋值
+            Country = CountryEnum.China;
+            Status = true;
+        }
         #endregion
     }
 }

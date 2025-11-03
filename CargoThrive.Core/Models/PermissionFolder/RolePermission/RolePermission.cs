@@ -39,12 +39,30 @@ namespace CargoThrive.Core.Models
         /// <summary>
         /// 关联的角色
         /// </summary>
-        public Role Role { get; set; }
+        public required Role Role { get; set; }
 
         /// <summary>
         /// 关联的权限
         /// </summary>
-        public Permission Permission { get; set; }
+        public required Permission Permission { get; set; }
+        #endregion
+
+        #region 构造函数
+        /// <summary>
+        /// EF Core 映射需要的无参构造函数
+        /// </summary>
+        protected RolePermission() { }
+
+        /// <summary>
+        /// 创建角色权限关联的构造函数
+        /// </summary>
+        /// <param name="roleId">角色ID</param>
+        /// <param name="permissionId">权限ID</param>
+        public RolePermission(long roleId, long permissionId)
+        {
+            RoleId = roleId;
+            PermissionId = permissionId;
+        }
         #endregion
     }
 }
