@@ -102,7 +102,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// 7. 强制HTTPS（生产环境建议启用）
+// 7. 强制HTTPS（生产环境建议启用）  
 app.UseHttpsRedirection();
 
 // 8. 启用认证（解析JWT令牌）
