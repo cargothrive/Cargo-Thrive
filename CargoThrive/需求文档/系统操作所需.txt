@@ -5,4 +5,4 @@ Add-Migration InitialCreate
 Update-Database
 
 #撤销迁移
-Remove-Migration
+Remove-Migration   
