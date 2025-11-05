@@ -3,3 +3,6 @@ Add-Migration InitialCreate
 
 # 应用迁移，创建表
 Update-Database
+
+#撤销迁移
+Remove-Migration

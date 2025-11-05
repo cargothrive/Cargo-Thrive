@@ -1,5 +1,6 @@
 using CargoThrive.API.Middlewares;
 using CargoThrive.Infrastructure;
+using CargoThrive.Infrastructure.Helpers;
 using CargoThrive.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;

@@ -23,8 +23,7 @@ namespace CargoThrive.Infrastructure.Services
         private readonly ApplicationDbContext _dbContext;
         private readonly RedisHelper _redisHelper;
 
-        public PermissionService(ApplicationDbContext dbContext,
-    RedisHelper redisHelper)
+        public PermissionService(ApplicationDbContext dbContext,RedisHelper redisHelper)
         {
             _dbContext = dbContext;
             _redisHelper = redisHelper;
