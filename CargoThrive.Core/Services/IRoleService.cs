@@ -6,10 +6,11 @@ namespace CargoThrive.Core.Services
 {
     public interface IRoleService
     {
-        Task<List<Role>> GetAllRolesAsync();
-        Task<Role?> GetRoleByIdAsync(long id);
-        Task<Role> CreateRoleAsync(Role role);
-        Task<Role> UpdateRoleAsync(Role role);
-        Task<bool> DeleteRoleAsync(long id);
+        string GetTestMessage();
+        Task<List<Role>> GetAllRolesAsync(long tenantId, CancellationToken token = default);
+        Task<Role?> GetRoleByIdAsync(long id, long tenantId, CancellationToken token = default);
+        Task<bool> CreateRoleAsync(RoleRequest role, long tenantId, CancellationToken token = default);
+        Task<bool> UpdateRoleAsync(RoleRequest role, long tenantId, CancellationToken token = default);
+        Task<bool> DeleteRoleAsync(long id, long tenantId, CancellationToken token = default);
     }
 }

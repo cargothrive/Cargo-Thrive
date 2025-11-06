@@ -1,62 +1,74 @@
-using CargoThrive.API.Middlewares;
+ï»¿using CargoThrive.API.Middlewares;
+using CargoThrive.Core.Converters;
 using CargoThrive.Infrastructure;
-using CargoThrive.Infrastructure.Helpers;
 using CargoThrive.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
+using System.Reflection;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. ×¢²á»ù´¡ÉèÊ©²ã·şÎñ£¨½âñîAPI²ã£¬Í³Ò»¹ÜÀíÊı¾İ¿â¡¢·şÎñ¡¢ÅäÖÃ£©
+// 1ï¸âƒ£ æ³¨å†ŒåŸºç¡€è®¾æ–½å±‚æœåŠ¡
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// 2. ÅäÖÃJWTÈÏÖ¤£¨»ùÓÚappsettings.jsonµÄJwt½Úµã£©
+// 2ï¸âƒ£ é…ç½® JWT è®¤è¯
 var jwtSettings = builder.Configuration.GetSection("Jwt").Get<CargoThrive.Core.Models.JwtSettings>()!;
-
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            // ±ØĞëÑéÖ¤Ïî
             ValidateIssuer = true,
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            // ÅäÖÃÖµ£¨´ÓJwtSettings¶ÁÈ¡£¬±ÜÃâÓ²±àÂë£©
             ValidIssuer = jwtSettings.Issuer,
             ValidAudience = jwtSettings.Audience,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key)),
-            // ÔÊĞí5·ÖÖÓÊ±ÖÓÆ«²î£¨±ÜÃâ·şÎñÆ÷Ê±¼ä²îÒìµ¼ÖÂÁîÅÆÊ§Ğ§£©
             ClockSkew = TimeSpan.FromMinutes(5)
         };
     });
 
-// 3. ÆôÓÃÊÚÈ¨·şÎñ
+// 3ï¸âƒ£ å¯ç”¨æˆæƒæœåŠ¡
 builder.Services.AddAuthorization();
 
-// 4. Ìí¼Ó¿ØÖÆÆ÷Ö§³Ö
-builder.Services.AddControllers();
+// 4ï¸âƒ£ æ·»åŠ æ§åˆ¶å™¨å¹¶é…ç½® JSON åºåˆ—åŒ–
+builder.Services.AddControllers().AddJsonOptions(o =>
+{
+    //è¿”å›æ—¶é—´åºåˆ—åŒ–
+    o.JsonSerializerOptions.Converters.Add(new FlexibleDateTimeConverterFactory("yyyy-MM-dd HH:mm:ss"));
+    o.JsonSerializerOptions.PropertyNamingPolicy = null;
+    o.JsonSerializerOptions.AllowTrailingCommas = true;
+    o.JsonSerializerOptions.ReadCommentHandling = System.Text.Json.JsonCommentHandling.Skip;
+});
 
-// 5. ÅäÖÃSwagger£¨Ö§³ÖJWTÈÏÖ¤¡¢ÖĞÎÄÎÄµµĞÅÏ¢£©
+// 5ï¸âƒ£ Swagger é…ç½®
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    // 5.1 ÅäÖÃAPIÎÄµµ»ù±¾ĞÅÏ¢
     options.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title = "CargoThrive »õÔËÏµÍ³ API",
+        Title = "CargoThrive è´§è¿ç³»ç»Ÿ API",
         Version = "v1",
-        Description = "»ùÓÚ.NET 8µÄ»õÔËÏµÍ³APIÎÄµµ£¬Ö§³ÖJWTÈÏÖ¤¡¢È¨ÏŞ¿ØÖÆ",
-        Contact = new OpenApiContact
-        {
-            Name = "jcj"
-        }
+        Description = "åŸºäº .NET 8 çš„è´§è¿ç³»ç»Ÿ API æ–‡æ¡£ï¼Œæ”¯æŒ JWT æƒé™æ§åˆ¶",
+        Contact = new OpenApiContact { Name = "jcj" }
     });
 
-    // 5.2 Ìí¼ÓJWTÈÏÖ¤Ö§³Ö£¨SwaggerÏÔÊ¾Authorize°´Å¥£©
+    // è½½å…¥ XML æ³¨é‡Š
+    var apiXmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var apiXmlPath = Path.Combine(AppContext.BaseDirectory, "Properties", apiXmlFile);
+    if (File.Exists(apiXmlPath))
+        options.IncludeXmlComments(apiXmlPath, includeControllerXmlComments: true);
+
+    var coreXmlFile = "CargoThrive.Core.xml";
+    var coreXmlPath = Path.Combine(AppContext.BaseDirectory, "Properties", coreXmlFile);
+    if (File.Exists(coreXmlPath))
+        options.IncludeXmlComments(coreXmlPath);
+
+    // å¯ç”¨ JWT é‰´æƒ
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -64,58 +76,63 @@ builder.Services.AddSwaggerGen(options =>
         Scheme = "Bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "ÇëÊäÈëJWTÁîÅÆ£¨¸ñÊ½£ºBearer {ÄãµÄToken}£©"
+        Description = "JWT è®¤è¯æ ¼å¼: Bearer {token}"
     });
-
-    // 5.3 È«¾ÖÓ¦ÓÃÈÏÖ¤ÒªÇó£¨ËùÓĞ½Ó¿ÚÄ¬ÈÏĞèÒªJWT£¬¹«¿ª½Ó¿ÚĞè¼Ó[AllowAnonymous]£©
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
             new OpenApiSecurityScheme
             {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
             },
             Array.Empty<string>()
         }
     });
+    // è¯·æ±‚åºåˆ—åŒ–ç»Ÿä¸€æŠŠ DateTime çœ‹ä½œå­—ç¬¦ä¸²ï¼ˆé¿å…å†…éƒ¨ç”¨é”™è¯¯çš„é»˜è®¤å€¼å»ååºåˆ—åŒ–ï¼‰
+    options.MapType<DateTime>(() => new OpenApiSchema
+    {
+        Type = "string",
+        Format = "date-time",
+        Example = new OpenApiString(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:dd"))
+    });
+    options.MapType<DateTime?>(() => new OpenApiSchema
+    {
+        Type = "string",
+        Format = "date-time",
+        Nullable = true,
+        Example = new OpenApiString(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:dd"))
+    });
 });
+
+// 6ï¸âƒ£ æ§åˆ¶å°æ—¥å¿—
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
-// ×¢²á¶¨Ê±ÈÎÎñ·şÎñ
+
+// 7ï¸âƒ£ æ³¨å†Œå®šæ—¶ä»»åŠ¡æœåŠ¡
 builder.Services.AddHostedService<TimedTaskService>();
 
 var app = builder.Build();
 
-// 6. ÅäÖÃHTTPÇëÇó¹ÜµÀ£¨°´Ë³ĞòÖ´ĞĞ£©
+// 8ï¸âƒ£ HTTP è¯·æ±‚ç®¡é“
 if (app.Environment.IsDevelopment())
 {
-    // ¿ª·¢»·¾³ÆôÓÃSwagger
     app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "CargoThrive API v1");
-        // ¿ÉÑ¡£ºÉèÖÃSwagger UIÄ¬ÈÏÂ·¾¶£¨·ÃÎÊ¸ùÂ·¾¶Ö±½Ó½øÈëÎÄµµ£©
-        // options.RoutePrefix = string.Empty;
+        options.RoutePrefix = string.Empty;
+        options.DocumentTitle = "è´§è¿ç³»ç»Ÿ API æ–‡æ¡£";
     });
+    app.MapSwagger().AllowAnonymous();
 }
 
-// 7. Ç¿ÖÆHTTPS£¨Éú²ú»·¾³½¨ÒéÆôÓÃ£©  
 app.UseHttpsRedirection();
 
-// 8. ÆôÓÃÈÏÖ¤£¨½âÎöJWTÁîÅÆ£©
+app.UseRouting();
 app.UseAuthentication();
-
-// 9. ÆôÓÃÈ¨ÏŞĞ£ÑéÖĞ¼ä¼ş£¨ÔÚÊÚÈ¨Ç°Ö´ĞĞ£¬Ğ£Ñé½Ó¿ÚÈ¨ÏŞ£©
+app.UseAuthorization();
 app.UsePermissionMiddleware();
 
-// 10. ÆôÓÃÊÚÈ¨£¨»ùÓÚ½ÇÉ«/È¨ÏŞµÄ·ÃÎÊ¿ØÖÆ£©
-app.UseAuthorization();
-
-// 11. Ó³Éä¿ØÖÆÆ÷Â·ÓÉ
 app.MapControllers();
 
 app.Run();

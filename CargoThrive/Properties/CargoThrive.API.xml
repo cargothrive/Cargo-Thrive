@@ -1,0 +1,95 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>CargoThrive.API</name>
+    </assembly>
+    <members>
+        <member name="M:CargoThrive.API.Controllers.AuthController.GetTestMessage">
+            <summary>
+            测试接口
+            </summary>
+        </member>
+        <member name="M:CargoThrive.API.Controllers.AuthController.Login(CargoThrive.Core.Models.LoginRequest)">
+            <summary>
+            用户登录
+            </summary>
+        </member>
+        <member name="M:CargoThrive.API.Controllers.AuthController.SwitchRoles(CargoThrive.Core.Models.SwitchRoleRequest)">
+            <summary>
+            修改当前角色
+            </summary>
+        </member>
+        <member name="M:CargoThrive.API.Controllers.AuthController.Logout">
+            <summary>
+            用户退出登录
+            </summary>
+        </member>
+        <member name="M:CargoThrive.API.Controllers.AuthController.GetUserInfo">
+            <summary>
+            获取当前登录用户信息
+            </summary>
+        </member>
+        <member name="M:CargoThrive.API.Controllers.RolesController.GetAllRoles(System.Threading.CancellationToken)">
+            <summary>
+            获取所有角色列表
+            </summary>
+            <returns>角色列表数据</returns>
+            <response code="200">成功返回角色列表</response>
+            <response code="401">未登录或令牌失效</response>
+            <response code="500">服务器内部错误</response>
+        </member>
+        <member name="M:CargoThrive.API.Controllers.RolesController.GetRoleById(System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            根据ID获取角色详情
+            </summary>
+            <param name="id">角色ID</param>
+            <returns>角色详情数据</returns>
+            <response code="200">成功返回角色详情</response>
+            <response code="400">无效的角色ID</response>
+            <response code="401">未登录或令牌失效</response>
+            <response code="404">角色不存在</response>
+            <response code="500">服务器内部错误</response>
+        </member>
+        <member name="M:CargoThrive.API.Controllers.RolesController.CreateRole(CargoThrive.Core.Models.RoleRequest,System.Threading.CancellationToken)">
+            <summary>
+            新建角色
+            </summary>
+            <param name="role">角色创建参数</param>
+            <returns>创建成功的角色信息</returns>
+            <response code="200">角色创建成功</response>
+            <response code="400">请求参数无效</response>
+            <response code="401">未登录或令牌失效</response>
+            <response code="500">服务器内部错误</response>
+        </member>
+        <member name="M:CargoThrive.API.Controllers.RolesController.UpdateRole(System.Int64,CargoThrive.Core.Models.RoleRequest,System.Threading.CancellationToken)">
+            <summary>
+            修改角色信息
+            </summary>
+            <param name="id">角色ID（路径参数）</param>
+            <param name="role">角色修改参数</param>
+            <returns>修改成功的角色信息</returns>
+            <response code="200">角色修改成功</response>
+            <response code="400">请求参数无效或ID不匹配</response>
+            <response code="401">未登录或令牌失效</response>
+            <response code="404">角色不存在</response>
+            <response code="500">服务器内部错误</response>
+        </member>
+        <member name="M:CargoThrive.API.Controllers.RolesController.DeleteRole(System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            删除角色
+            </summary>
+            <param name="id">角色ID</param>
+            <returns>删除结果</returns>
+            <response code="200">角色删除成功</response>
+            <response code="400">无效的角色ID</response>
+            <response code="401">未登录或令牌失效</response>
+            <response code="404">角色不存在</response>
+            <response code="500">服务器内部错误</response>
+        </member>
+        <member name="M:CargoThrive.API.Middlewares.PermissionMiddlewareExtensions.UsePermissionMiddleware(Microsoft.AspNetCore.Builder.IApplicationBuilder)">
+            <summary>
+            注册权限中间件到请求管道
+            </summary>
+        </member>
+    </members>
+</doc>

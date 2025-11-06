@@ -1,7 +1,8 @@
 ﻿using CargoThrive.Core.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -21,7 +22,23 @@ namespace CargoThrive.API.Middlewares
         }
 
         public async Task InvokeAsync(HttpContext context)
-        {
+        {  
+            // 检查当前请求是否允许匿名访问，若允许则直接跳过
+            var endpoint = context.GetEndpoint();
+            if (endpoint?.Metadata.GetMetadata<IAllowAnonymous>() != null)
+            {
+                await _next(context);
+                return;
+            }
+            // 1. 跳过 Swagger 相关路径（允许匿名访问）
+            var path = context.Request.Path.Value?.ToLowerInvariant();
+            if (path?.StartsWith("/swagger") == true ||
+                path == "/swagger.json" ||
+                path == "/swagger/v1/swagger.json")
+            {
+                await _next(context);
+                return;
+            }
             try
             {
                 // 创建一个新的作用域

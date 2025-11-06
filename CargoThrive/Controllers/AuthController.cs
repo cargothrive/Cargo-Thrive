@@ -1,5 +1,6 @@
 ﻿using CargoThrive.Core.Models;
 using CargoThrive.Core.Services;
+using CargoThrive.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
@@ -22,6 +23,19 @@ namespace CargoThrive.API.Controllers
         }
 
         /// <summary>
+        /// 测试接口
+        /// </summary>
+        [HttpGet("get-test-message")]
+        [AllowAnonymous] // 允许匿名访问
+        public async Task<IActionResult> GetTestMessage()
+        {
+            var result = _authService.GetTestMessage();
+          
+            return Ok(new { Result = result, message = "访问成功" });
+        }
+
+
+        /// <summary>
         /// 用户登录
         /// </summary>
         [HttpPost("login")]
@@ -36,7 +50,7 @@ namespace CargoThrive.API.Controllers
                     return Unauthorized(new { message = "无效的用户名或密码" });
                 }
 
-                return Ok(new { token = result.Token, message = "登录成功" });
+                return Ok(new { result = result, message = "登录成功" });
             }
             catch (Exception ex)
             {
@@ -45,6 +59,9 @@ namespace CargoThrive.API.Controllers
             }
         }
 
+        /// <summary>
+        /// 修改当前角色
+        /// </summary>
         [HttpPost("switch-role")]
         [Authorize] // 需要登录才能访问
         public async Task<IActionResult> SwitchRoles([FromBody] SwitchRoleRequest request)
@@ -66,7 +83,7 @@ namespace CargoThrive.API.Controllers
                     return Unauthorized(new { message = "未找到对应角色" });
                 }
 
-                return Ok(new { token = result.Token, message = "切换成功" });
+                return Ok(new { result = result, message = "切换成功" });
             }
             catch (Exception ex)
             {

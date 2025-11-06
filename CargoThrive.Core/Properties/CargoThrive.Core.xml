@@ -1,0 +1,508 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>CargoThrive.Core</name>
+    </assembly>
+    <members>
+        <member name="T:CargoThrive.Core.Converters.DateTimeTextConverter">
+            非可空 DateTime：读兼容多格式，写固定 "yyyy-MM-dd HH:mm:ss"
+        </member>
+        <member name="T:CargoThrive.Core.Converters.NullableDateTimeTextConverter">
+            可空 DateTime?：空串/空值 => null
+        </member>
+        <member name="T:CargoThrive.Core.Converters.FlexibleDateTimeConverterFactory">
+            <summary>
+            支持 DateTime 与 DateTime? 的灵活 JSON 转换器
+            - 支持多种常见时间格式（本地时间 / UTC / ISO 8601）
+            - 空字符串自动转为 null
+            - 统一输出格式（yyyy-MM-dd HH:mm:ss）
+            </summary>
+        </member>
+        <member name="T:CargoThrive.Core.Enums.CountryEnum">
+            <summary>
+            国家字典
+            </summary>
+        </member>
+        <member name="F:CargoThrive.Core.Enums.CountryEnum.China">
+            <summary>中国</summary>
+        </member>
+        <member name="F:CargoThrive.Core.Enums.CountryEnum.Canada">
+            <summary>加拿大</summary>
+        </member>
+        <member name="F:CargoThrive.Core.Enums.CountryEnum.USA">
+            <summary>美国</summary>
+        </member>
+        <member name="T:CargoThrive.Core.Enums.LanguageEnum">
+            <summary>
+            语言字典
+            </summary>
+        </member>
+        <member name="F:CargoThrive.Core.Enums.LanguageEnum.Chinese">
+            <summary>中文</summary>
+        </member>
+        <member name="F:CargoThrive.Core.Enums.LanguageEnum.English">
+            <summary>英语</summary>
+        </member>
+        <member name="F:CargoThrive.Core.Enums.LanguageEnum.Spanish">
+            <summary>西班牙语</summary>
+        </member>
+        <member name="T:CargoThrive.Core.Enums.PermissionTypeEnum">
+            <summary>
+            权限类型
+            </summary>
+        </member>
+        <member name="F:CargoThrive.Core.Enums.PermissionTypeEnum.Menu">
+            <summary>菜单权限</summary>
+        </member>
+        <member name="F:CargoThrive.Core.Enums.PermissionTypeEnum.Button">
+            <summary>按钮权限</summary>
+        </member>
+        <member name="F:CargoThrive.Core.Enums.PermissionTypeEnum.Api">
+            <summary>接口权限</summary>
+        </member>
+        <member name="T:CargoThrive.Core.Models.ApiResponse`1">
+            <summary>
+            通用的 API 响应格式
+            </summary>
+        </member>
+        <member name="T:CargoThrive.Core.Models.CurrentUserInfo">
+            <summary>
+            当前登录用户信息模型
+            </summary>
+        </member>
+        <member name="T:CargoThrive.Core.Models.DefaultEntity">
+            <summary>
+            基础实体类
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.DefaultEntity.Id">
+            <summary>
+            实体主键 ID
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.DefaultEntity.Status">
+            <summary>​
+            实体状态​
+            <para>0 - 启用：实体可正常使用</para>​
+            <para>1 - 禁用：实体暂不可用（逻辑删除/冻结）</para>​
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.DefaultEntity.CreateTime">
+            <summary>
+            创建时间
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.DefaultEntity.ConcurrencyStamp">
+            <summary>
+            时间戳
+            并发控制戳（防止并发修改冲突）
+            </summary>
+        </member>
+        <member name="T:CargoThrive.Core.Models.DefaultRequest">
+            <summary>
+            默认请求实体
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.DefaultRequest.RoleId">
+            <summary>
+            角色Id
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.DefaultRequest.Language">
+            <summary>
+            语言
+            </summary>
+        </member>
+        <member name="T:CargoThrive.Core.Models.JwtSettings">
+            <summary>
+            JWT配置参数（与appsettings.json的"Jwt"节点对应）
+            </summary>
+        </member>
+        <member name="T:CargoThrive.Core.Models.LoginLog">
+            <summary>
+            租户表
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.LoginLog.Id">
+            <summary>
+            实体主键 ID
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.LoginLog.LoginTime">
+            <summary>
+            登录时间
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.LoginLog.IpAddress">
+            <summary>
+            登录IP地址
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.LoginLog.UserAgent">
+            <summary>
+            用户代理（客户端信息）
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.LoginLog.LoginStatus">
+            <summary>
+            登录状态
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.LoginLog.FailReason">
+            <summary>
+            失败原因（可选）
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.LoginLog.UserManagementId">
+            <summary>
+            用户（外键）
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.UserInfo.Id">
+            <summary>
+            用户Id
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.UserInfo.Username">
+            <summary>
+            用户姓名
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.UserInfo.RoleId">
+            <summary>
+            角色ID（外键）
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.UserInfo.PasswordExpireTime">
+            <summary>
+            密码有效期
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.SwitchRoleRequest.RoleId">
+            <summary>
+            角色Id
+            </summary>
+        </member>
+        <member name="T:CargoThrive.Core.Models.Permission">
+            <summary>
+            Permission Table (权限表)
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.Permission.PermissionType">
+            <summary>
+            权限类型
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.Permission.Path">
+            <summary>
+            权限路径（菜单URL/接口地址）
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.Permission.ParentId">
+            <summary>
+            父权限ID（用于权限层级，0=顶级权限）
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.Permission.Description">
+            <summary>
+            描述
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.Permission.Sort">
+            <summary>
+            排序
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.Permission.ParentPermission">
+            <summary>
+            父权限（ParentId=0时为null）
+            </summary>
+        </member>
+        <member name="T:CargoThrive.Core.Models.RolePermission">
+            <summary>
+            角色-权限关联表
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.RolePermission.RoleId">
+            <summary>
+            角色ID（外键）
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.RolePermission.PermissionId">
+            <summary>
+            权限ID（外键）
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.RolePermission.Role">
+            <summary>
+            关联的角色
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.RolePermission.Permission">
+            <summary>
+            关联的权限
+            </summary>
+        </member>
+        <member name="M:CargoThrive.Core.Models.RolePermission.#ctor">
+            <summary>
+            EF Core 映射需要的无参构造函数
+            </summary>
+        </member>
+        <member name="M:CargoThrive.Core.Models.RolePermission.#ctor(System.Int64,System.Int64)">
+            <summary>
+            创建角色权限关联的构造函数
+            </summary>
+            <param name="roleId">角色ID</param>
+            <param name="permissionId">权限ID</param>
+        </member>
+        <member name="T:CargoThrive.Core.Models.Role">
+            <summary>
+            角色表
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.Role.RoleName">
+            <summary>
+            角色名称
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.Role.TenantId">
+            <summary>
+            租户ID（外键）
+            <para>特殊值：0 = 全局租户（仅总管理员/系统角色使用）</para>
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.Role.Description">
+            <summary>
+            角色描述
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.Role.Tenant">
+            <summary>
+            关联租户（TenantId=0时为null）
+            </summary>
+        </member>
+        <member name="T:CargoThrive.Core.Models.UserRole">
+            <summary>
+            用户-角色关联表（多对多关系中间表）
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.UserRole.UserManagementId">
+            <summary>
+            用户外键
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.UserRole.RoleId">
+            <summary>
+            角色外键
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.UserRole.UserManagement">
+            <summary>
+            关联的用户
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.UserRole.Role">
+            <summary>
+            关联的角色
+            </summary>
+        </member>
+        <member name="M:CargoThrive.Core.Models.UserRole.#ctor">
+            <summary>
+            EF Core 映射需要的无参构造函数
+            </summary>
+        </member>
+        <member name="M:CargoThrive.Core.Models.UserRole.#ctor(System.Int64,System.Int64)">
+            <summary>
+            创建用户角色关联的构造函数
+            </summary>
+            <param name="userManagementId">用户ID</param>
+            <param name="roleId">角色ID</param>
+        </member>
+        <member name="M:CargoThrive.Core.Models.UserRole.IsValid">
+            <summary>
+            验证实体数据是否有效
+            </summary>
+            <returns>是否有效</returns>
+        </member>
+        <member name="T:CargoThrive.Core.Models.RedisSettings">
+            <summary>
+            Redis配置参数
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.RedisSettings.ConnectionString">
+            <summary>
+            连接字符串（格式："127.0.0.1:6379,password=xxx,defaultDatabase=0"）
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.RedisSettings.DefaultDatabase">
+            <summary>
+            默认数据库索引（0-15）
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.RedisSettings.ConnectTimeout">
+            <summary>
+            连接超时时间（毫秒）
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.RedisSettings.SyncTimeout">
+            <summary>
+            同步操作超时时间（毫秒）
+            </summary>
+        </member>
+        <member name="T:CargoThrive.Core.Models.RoleRequest">
+            <summary>
+            角色请求Model
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.RoleRequest.Id">
+            <summary>
+            实体主键 ID
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.RoleRequest.RoleName">
+            <summary>
+            角色名称
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.RoleRequest.Description">
+            <summary>
+            角色描述
+            </summary>
+        </member>
+        <member name="T:CargoThrive.Core.Models.Tenant">
+            <summary>
+            租户表
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.Tenant.TenantName">
+            <summary>
+            租户名称
+            </summary>
+        </member>
+        <member name="T:CargoThrive.Core.Models.UserManagementSign">
+            <summary>
+            用户管理员签名
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.UserManagementSign.Sign">
+            <summary>
+            签名（管理员电子签名/标识签名）
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.UserManagementSign.Country">
+            <summary>
+            国家/地区（管理员所属国家）
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.UserManagementSign.ShowNickName">
+            <summary>
+            签名名称（管理员对外显示的签名别名）
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.UserManagementSign.UserManagementId">
+            <summary>
+            用户（外键）
+            </summary>
+        </member>
+        <member name="M:CargoThrive.Core.Models.UserManagementSign.#ctor">
+            <summary>
+            EF Core 映射所需的无参构造函数（保护访问，避免外部随意创建）
+            </summary>
+        </member>
+        <member name="M:CargoThrive.Core.Models.UserManagementSign.#ctor(System.Int64,System.String,System.String)">
+            <summary>
+            创建用户签名的核心构造函数（必填字段）
+            </summary>
+            <param name="userManagementId">关联用户ID</param>
+            <param name="sign">签名内容（Base64或文本）</param>
+            <param name="showNickName">签名显示名称</param>
+            <param name="signType">签名类型</param>
+        </member>
+        <member name="T:CargoThrive.Core.Models.UserManagement">
+            <summary>
+            用户管理员
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.UserManagement.Account">
+            <summary>
+            用户登录帐号
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.UserManagement.PasswordHash">
+            <summary>
+            密码哈希值（存储HMACSHA512加密后的结果）
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.UserManagement.PasswordSalt">
+            <summary>
+            密码盐值（随机生成，用于增强哈希安全性）
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.UserManagement.UserName">
+            <summary>
+            用户姓名
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.UserManagement.StartTime">
+            <summary>
+            上班时间
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.UserManagement.EndTime">
+            <summary>
+            下班时间
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.UserManagement.TenantId">
+            <summary>
+            租户ID（外键）
+            <para>特殊值：0 = 全局租户（仅总管理员的UserManagement使用）</para>
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.UserManagement.PasswordErrorCount">
+            <summary>
+            密码错误次数
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.UserManagement.PasswordExpireTime">
+            <summary>
+            密码有效期
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.UserManagement.LoginCountTimeLimit">
+            <summary>
+            登录次数时间限制（分钟）
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.UserManagement.LastPasswordErrorTime">
+            <summary>
+            上次密码错误时间
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.UserManagement.PasswordErrorLockEndTime">
+            <summary>
+            登录冷却结束时间
+            </summary>
+        </member>
+        <member name="P:CargoThrive.Core.Models.UserManagement.Tenant">
+            <summary>
+            关联租户导航属性
+            </summary>
+        </member>
+        <member name="M:CargoThrive.Core.Models.UserManagement.#ctor">
+            <summary>
+            EF Core 映射所需的无参构造函数（保护访问，避免外部随意创建）
+            </summary>
+        </member>
+        <member name="M:CargoThrive.Core.Models.UserManagement.#ctor(System.String,System.String,System.String,System.String,System.Int64)">
+            <summary>
+            创建用户的核心构造函数（必填字段）
+            </summary>
+            <param name="account">登录账号</param>
+            <param name="passwordHash">密码哈希</param>
+            <param name="passwordSalt">密码盐值</param>
+            <param name="userName">用户姓名</param>
+            <param name="tenantId">租户ID（0=总管理员）</param>
+        </member>
+    </members>
+</doc>

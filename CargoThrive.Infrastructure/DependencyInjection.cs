@@ -52,10 +52,12 @@ namespace CargoThrive.Infrastructure
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IRoleManagementService, RoleManagementService>();
             services.AddScoped<IPermissionService, PermissionService>();
-            services.AddScoped<ITestService, TestService>();
+            services.AddScoped<ITestService, TestService>(); 
+            services.AddScoped<IRoleService, RoleService>();
 
             // 8. 注册 HttpContextAccessor（AuthService 中获取 IP/Token 需要）
             services.AddHttpContextAccessor();
+            services.AddScoped<CurrentUserHelper>();
 
             return services;
         }

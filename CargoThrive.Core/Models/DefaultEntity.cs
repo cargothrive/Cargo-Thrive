@@ -1,13 +1,15 @@
-﻿using System;
+﻿using CargoThrive.Core.Converters;
+using CargoThrive.Core.Enums;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using System.Composition;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using System.Composition;
-using CargoThrive.Core.Enums;
 
 namespace CargoThrive.Core.Models
 {
@@ -42,8 +44,8 @@ namespace CargoThrive.Core.Models
         [DisplayName("创建时间")]
         [Display(Name = "创建时间")]
         [Comment("创建时间")]
-        [DefaultValue(null)]
-        public DateTime? CreateTime { get; set; } = DateTime.Now; // 或使用UtcNow（推荐跨时区场景）
+        //[JsonConverter(typeof(NullableDateTimeTextConverter))]   // ← 关键：属性级转换器
+        public DateTime? CreateTime { get; set; }  // 或使用UtcNow（推荐跨时区场景）
 
 
         ///// <summary>
